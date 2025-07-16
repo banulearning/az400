@@ -1,0 +1,25 @@
+name: Deploy Azure Infra via Bicep
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Bicep file
+        run: |
+          az deployment group create \
+            --resource-group cicd \
+            --template-file ./infra/main.bicep \
+            --parameters sqlAdminPassword='Strong!Passw0rd123'
