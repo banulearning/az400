@@ -1,9 +1,14 @@
-name: Deploy Azure Infra via Bicep
+name: Deploy Azure Infra and ADF
 
 on:
   push:
     branches:
       - main
+
+env:
+  RESOURCE_GROUP: cicd
+  LOCATION: southindia
+  ADF_NAME: adf-nshymvej3jozq  # Should match what was created by Bicep
 
 jobs:
   deploy:
@@ -17,9 +22,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Bicep file
+      - name: Deploy Infra (Bicep)
         run: |
           az deployment group create \
-            --resource-group cicd \
+            --resource-group $RESOURCE_GROUP \
             --template-file ./infra/main.bicep \
             --parameters sqlAdminPassword='Strong!Passw0rd123'
+
+      - name: Deploy ADF Pipeline (ARM Template)
+        run: |
+          az deployment group create \
+            --resource-group $RESOURCE_GROUP \
+            --template-file ./pipeline/ARMTemplateForFactory.json \
+            --parameters @./pipeline/ARMTemplateParametersForFactory.json
